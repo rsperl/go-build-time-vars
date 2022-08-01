@@ -83,12 +83,36 @@ func GetBuildInfo() []BuildInfo {
 	}
 }
 
+// returns the length of the longest heading and value
+func longestHeadingAndValue(info []BuildInfo) (int, int) {
+	var heading, value int
+	for _, item := range info {
+		if len(item.Name) > heading {
+			heading = len(item.Name)
+		}
+		if len(item.Value) > value {
+			value = len(item.Value)
+		}
+	}
+	return heading, value
+}
+
 // GetBuildInfoFormatted returns a list of strings for either printing or logging
 func GetBuildInfoFormatted() []string {
-	longLine := strings.Replace(fmt.Sprintf("+%61s+", ""), " ", "-", 61)
+	buildInfo := GetBuildInfo()
+
+	// build format strings based on longest heading and value
+	headingLength, valueLength := longestHeadingAndValue(buildInfo)
+	format := "| %-" + fmt.Sprintf("%d", headingLength+1) + "s %-" + fmt.Sprintf("%d", valueLength) + "s |"
+
+	// top and bottom borders need an additional four chars to account for spaces
+	lineFormat := "+%" + fmt.Sprintf("%d", headingLength+valueLength+4) + "s+"
+	longLine := strings.Replace(fmt.Sprintf(lineFormat, ""), " ", "-", -1)
+	
+	// build formatted strings
 	content := []string{longLine}
-	for _, item := range GetBuildInfo() {
-		content = append(content, fmt.Sprintf("| %-17s %-41s |", item.Name+":", item.Value))
+	for _, item := range buildInfo {
+		content = append(content, fmt.Sprintf(format, item.Name+":", item.Value))
 	}
 	return append(content, longLine)
 }
